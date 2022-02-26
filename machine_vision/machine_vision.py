@@ -11,6 +11,14 @@ sys.path.append("../communication")
 from json_client import JSONClient
 import asyncio
 
+def cal_dist_ratio(x1,x2,y1,y2):
+    max_dist = 400
+    obj_cen = np.array([(x2-x1)/2+x1, (y2-y1)/2+y1])
+    frame_cen = np.array([640/2, 480/2])
+    dist = np.linalg.norm(frame_cen-obj_cen)
+    dist_ratio = 1-dist/max_dist
+    return dist_ratio
+
 
 COCO_INSTANCE_CATEGORY_NAMES = [
     '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
@@ -33,10 +41,11 @@ model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
 model.eval()
 model.to("cuda")
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 transform = transforms.ToTensor()
 
 prev_img = None
+
 
 while 1:
     grabbed, frame = cap.read()
@@ -56,8 +65,10 @@ while 1:
         
         if score>=0.75:
             x1,y1,x2,y2 = [int(v) for v in box]
+            dist_ratio = cal_dist_ratio(x1,x2,y1,y2)
+            print(f'label: {COCO_INSTANCE_CATEGORY_NAMES[label]}, dist ratio: {dist_ratio}')
             payload["labels"].append(COCO_INSTANCE_CATEGORY_NAMES[label])
-            payload["boxes"].append([[x1,y1,x2,y2]])
+            payload["distance ration"].append(dist_ratio)
             payload["scores"].append(float(score))
 
         if score>=0.75:
@@ -66,7 +77,7 @@ while 1:
             texts = COCO_INSTANCE_CATEGORY_NAMES[label]
             cv2.putText(frame, texts, (x1,y1), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
 
-    mv_client.send(payload, verbose=1)        
+    #mv_client.send(payload, verbose=1)        
 
     if cv2.waitKey(10) & 0xFF == ord('q'):
         cap.release()
