@@ -3,8 +3,19 @@ import sys
 import json
 sys.path.append("../hardware_output")
 from serial_comms import SerialCommunicator
+from threading import Thread
 
 ser_comms = SerialCommunicator()
+
+def set_target():
+    while 1:
+        ser_comms.read_signal()
+        # insert change of target here!
+        print("button pressed")
+
+thread = Thread(target = set_target)
+thread.start()
+
 
 async def handle_echo(reader, writer):
     data = await reader.read()
@@ -13,18 +24,17 @@ async def handle_echo(reader, writer):
 
     # variables
     target = "person"
-    signal = 0
+    signal = 255
 
-    print(message)
     detections = json.loads(message)
-    print(signal)
-    # signal = (dist/diagonal) * 255
+    for i, label in enumerate(detections["labels"]):
+        if label == target:
+            curr_signal = (1 - detections["distance_ratio"][i]) * 255
+            signal = min(signal, int(curr_signal))
 
-    # if "person" in detections['labels']:
-    #     ser_comms.write_signal(0)
-    # else:
-    #     ser_comms.write_signal(255)
-    # print(detections)
+
+    print(signal)
+    ser_comms.put(signal)
 
     print(f"Send: thumbs up")
     writer.write("thumbs up".encode())

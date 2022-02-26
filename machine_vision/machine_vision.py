@@ -11,10 +11,10 @@ sys.path.append("../communication")
 from json_client import JSONClient
 import asyncio
 
-def cal_dist_ratio(x1,x2,y1,y2):
-    max_dist = 400
+def cal_dist_ratio(x1,x2,y1,y2,width,height):
+    max_dist = np.sqrt((width/2)**2 + (height/2)**2)
     obj_cen = np.array([(x2-x1)/2+x1, (y2-y1)/2+y1])
-    frame_cen = np.array([640/2, 480/2])
+    frame_cen = np.array([width/2, height/2])
     dist = np.linalg.norm(frame_cen-obj_cen)
     dist_ratio = 1-dist/max_dist
     return dist_ratio
@@ -41,7 +41,7 @@ model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
 model.eval()
 model.to("cuda")
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 transform = transforms.ToTensor()
 
 prev_img = None
@@ -49,6 +49,7 @@ prev_img = None
 
 while 1:
     grabbed, frame = cap.read()
+    H,W,C = frame.shape
     img = [transform(frame).to("cuda")]
     predictions = model(img)
 
@@ -57,7 +58,7 @@ while 1:
     scores = predictions[0]['scores'].cpu().detach().numpy()
     indices = torchvision.ops.batched_nms(predictions[0]['boxes'], predictions[0]['scores'], predictions[0]['labels'], 0.2)
 
-    payload = {"boxes": [], "labels": [], "scores": []}
+    payload = {"distance_ratio": [], "labels": [], "scores": []}
     for i in indices:
         box = boxes[i]
         label = labels[i]
@@ -65,10 +66,10 @@ while 1:
         
         if score>=0.75:
             x1,y1,x2,y2 = [int(v) for v in box]
-            dist_ratio = cal_dist_ratio(x1,x2,y1,y2)
+            dist_ratio = cal_dist_ratio(x1,x2,y1,y2,W,H)
             print(f'label: {COCO_INSTANCE_CATEGORY_NAMES[label]}, dist ratio: {dist_ratio}')
             payload["labels"].append(COCO_INSTANCE_CATEGORY_NAMES[label])
-            payload["distance ration"].append(dist_ratio)
+            payload["distance_ratio"].append(dist_ratio)
             payload["scores"].append(float(score))
 
         if score>=0.75:
@@ -77,7 +78,7 @@ while 1:
             texts = COCO_INSTANCE_CATEGORY_NAMES[label]
             cv2.putText(frame, texts, (x1,y1), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
 
-    #mv_client.send(payload, verbose=1)        
+    mv_client.send(payload, verbose=1)        
 
     if cv2.waitKey(10) & 0xFF == ord('q'):
         cap.release()
