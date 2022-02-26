@@ -81,18 +81,6 @@ if __name__ == "__main__":
 
     # get a random word from the list
     word = WORDS
-
-    # format the instructions string
-    instructions = (
-        "waiting")
-
-    # show instructions and wait 3 seconds before starting the game
-    print(instructions)
-
-
-    
-
-
     
     
     while(1):
@@ -117,6 +105,7 @@ if __name__ == "__main__":
             
         
 
+
         for i in COCO_INSTANCE_CATEGORY_NAMES:
             if i == recieved_speech:
                 # print(i)
@@ -125,8 +114,8 @@ if __name__ == "__main__":
                 break
         
         if found == False:
-            x = "item not in dataset"
-            print(x)
+            recieved_speech = "item not in dataset"
+            print(recieved_speech)
             break
            
                 
