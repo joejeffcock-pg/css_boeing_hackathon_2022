@@ -96,7 +96,6 @@ if __name__ == "__main__":
     
     
     while(1):
-        input()
         guess = recognize_speech_from_mic(recognizer, microphone)
         if guess["transcription"]:
             pass
@@ -123,9 +122,13 @@ if __name__ == "__main__":
                 # print(i)
                 found = True
                 print("detected: {}".format(recieved_speech))
+                break
         
         if found == False:
-            print("item not in dataset")
+            x = "item not in dataset"
+            print(x)
+            break
+           
                 
 
 
