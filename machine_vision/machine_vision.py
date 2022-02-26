@@ -33,7 +33,7 @@ model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
 model.eval()
 model.to("cuda")
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 transform = transforms.ToTensor()
 
 prev_img = None
@@ -48,6 +48,7 @@ while 1:
     scores = predictions[0]['scores'].cpu().detach().numpy()
     indices = torchvision.ops.batched_nms(predictions[0]['boxes'], predictions[0]['scores'], predictions[0]['labels'], 0.2)
 
+    payload = {"boxes": [], "labels": [], "scores": []}
     for i in indices:
         box = boxes[i]
         label = labels[i]
@@ -55,18 +56,17 @@ while 1:
         
         if score>=0.75:
             x1,y1,x2,y2 = [int(v) for v in box]
-            obj =	{
-            "label": COCO_INSTANCE_CATEGORY_NAMES[label],
-            "boxes": [[x1,y1,x2,y2]],
-            "score": float(score)
-            }
-            mv_client.send(obj, verbose=1)        
+            payload["labels"].append(COCO_INSTANCE_CATEGORY_NAMES[label])
+            payload["boxes"].append([[x1,y1,x2,y2]])
+            payload["scores"].append(float(score))
 
         if score>=0.75:
             x1,y1,x2,y2 = [int(v) for v in box]
             cv2.rectangle(frame, (x1,y1), (x2,y2), (0,255,0), 2)
             texts = COCO_INSTANCE_CATEGORY_NAMES[label]
             cv2.putText(frame, texts, (x1,y1), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
+
+    mv_client.send(payload, verbose=1)        
 
     if cv2.waitKey(10) & 0xFF == ord('q'):
         cap.release()
