@@ -6,17 +6,21 @@ class JSONClient:
         self.address = address
         self.port = port
 
-    async def send(self, output, verbose=False):
-        # dump to JSON and send payload over socket
-        reader, writer = await asyncio.open_connection(self.address, self.port)
-        message = json.dumps(output)
-
+    def send(self, output, verbose=False):
+        # dump to JSON
+        payload = json.dumps(output)
         if verbose:
-            print(f'Send: {message!r}')
+            print(f'Send: {payload!r}')
+
+        asyncio.run(self.async_write(payload))
+
+    async def async_write(self, message):
+        # send payload over socket
+        reader, writer = await asyncio.open_connection(self.address, self.port)
         writer.write(message.encode())
         writer.close()
 
 if __name__ == "__main__":
     test_data = {"detection": {"labels": [0], "boxes": [[0,0,1,1]], "scores": [0.5]}}
     client = JSONClient()
-    asyncio.run(client.send(test_data, verbose=1))
+    client.send(test_data, verbose=1)
