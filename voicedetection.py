@@ -40,7 +40,7 @@ def recognize_speech_from_mic(recognizer, microphone,keywords=None):
     # if a RequestError or UnknownValueError exception is caught,
     #     update the response object accordingly
     try:
-        response["transcription"] = recognizer.recognize_sphinx(audio, keyword_entries=keywords)
+        response["transcription"] = recognizer.recognize_google(audio)
     except sr.RequestError:
         # API was unreachable or unresponsive
         response["success"] = False
@@ -52,22 +52,9 @@ def recognize_speech_from_mic(recognizer, microphone,keywords=None):
     return response
 
 
-
-
-# COCO_INSTANCE_CATEGORY_NAMES = [
-#     'person', 'traffic light',
-#     'bench', 'cat', 'dog', 'umbrella', 'backpack',
-#     'handbag', 'bottle', 'cup', 'fork', 'knife', 'spoon', 'bowl',
-#     'chair', 'couch', 'potted plant', 'bed', 'dining table',
-#     'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-#     'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book',
-#     'clock', 'vase', 'scissors', 'hair drier', 'toothbrush'
-# ]
 COCO_INSTANCE_CATEGORY_NAMES = [
     'person', 'bottle', 'cup', 'potted plant', 'chair', 'potted plant', 'laptop', 'mouse', 'keyboard', 'cell phone'
 ]
-COCO_INSTANCE_CATEGORY_NAMES = [(label, 1.0) for label in COCO_INSTANCE_CATEGORY_NAMES]
-print(COCO_INSTANCE_CATEGORY_NAMES)
 
 class Recogniser:
     def __init__(self, device_index=None):
@@ -84,13 +71,10 @@ class Recogniser:
             return None, None
 
         # determine if guess is correct and if any attempts remain
-        transcript = guess["transcription"]
-        print(transcript)
-        transcript = transcript.split()
-        detected_label = transcript[-1]
+        transcript = guess["transcription"].lower()
 
-        for label, sensitivity in COCO_INSTANCE_CATEGORY_NAMES:
-            if label == detected_label:
+        for label in COCO_INSTANCE_CATEGORY_NAMES:
+            if label in transcript:
                 return 1, label
 
         return 0, transcript

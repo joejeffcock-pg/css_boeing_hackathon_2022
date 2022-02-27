@@ -12,7 +12,7 @@ from voicedetection import Recogniser, recognize_speech_from_mic
 
 ser_comms = SerialCommunicator()
 recogniser = Recogniser(device_index=None)
-target = None
+target = "cup"
 recognised_label = None
 
 def set_target():
