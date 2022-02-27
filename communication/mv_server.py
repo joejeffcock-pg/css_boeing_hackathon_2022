@@ -1,17 +1,32 @@
 import asyncio
+from os import device_encoding
 import sys
 import json
-sys.path.append("../hardware_output")
-from serial_comms import SerialCommunicator
 from threading import Thread
 
+sys.path.append("../hardware_output")
+from serial_comms import SerialCommunicator
+
+sys.path.append("../")
+from voicedetection import Recogniser, recognize_speech_from_mic
+
 ser_comms = SerialCommunicator()
+recogniser = Recogniser(device_index=19)
+target = None
+recognised_label = None
 
 def set_target():
+    global target
+    global recognised_label
     while 1:
         ser_comms.read_signal()
         # insert change of target here!
-        print("button pressed")
+        print("RECOGNISING")
+        known, recognised_label = recogniser.get_voice_input()
+        if known:
+            target = label
+        else:
+            target = None
 
 thread = Thread(target = set_target)
 thread.start()
@@ -23,7 +38,6 @@ async def handle_echo(reader, writer):
     addr = writer.get_extra_info('peername')
 
     # variables
-    target = "person"
     signal = 255
 
     detections = json.loads(message)
@@ -33,10 +47,9 @@ async def handle_echo(reader, writer):
             signal = min(signal, int(curr_signal))
 
 
-    print(signal)
+    print(signal, target, recognised_label)
     ser_comms.put(signal)
 
-    print(f"Send: thumbs up")
     writer.write("thumbs up".encode())
     await writer.drain()
 

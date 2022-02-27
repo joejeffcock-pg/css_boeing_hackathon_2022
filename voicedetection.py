@@ -68,56 +68,34 @@ COCO_INSTANCE_CATEGORY_NAMES = [
     'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
 ]   
 
-
-if __name__ == "__main__":
-    # set the list of words, maxnumber of guesses, and prompt limit
-    WORDS = ["trigger"]
-    # NUM_GUESSES = 3
-    # PROMPT_LIMIT = 5
-
-    # create recognizer and mic instances
-    recognizer = sr.Recognizer()
-    microphone = sr.Microphone()
-
-    # get a random word from the list
-    word = WORDS
+class Recogniser:
+    def __init__(self, device_index=None):
+        # create recognizer and mic instances
+        self.recognizer = sr.Recognizer()
+        self.microphone = sr.Microphone(device_index=device_index)
     
-    
-    while(1):
-        guess = recognize_speech_from_mic(recognizer, microphone)
-        if guess["transcription"]:
-            pass
-        if not guess["success"]:
-            pass
-  
+    def get_voice_input(self):
+        guess = recognize_speech_from_mic(self.recognizer, self.microphone)
 
         # if there was an error, stop the game
         if guess["error"]:
             print("ERROR: {}".format(guess["error"]))
+            return None, None
 
         # determine if guess is correct and if any attempts remain
-        recieved_speech = guess["transcription"]
+        transcript = guess["transcription"]
 
-        found = False
-        # if recieved_speech:
-            # print("Message recieved".format(word))
-            # print(recieved_speech)
-            
-        
+        for label in COCO_INSTANCE_CATEGORY_NAMES:
+            if label in transcript:
+                return 1, label
 
+        return 0, transcript
 
-        for i in COCO_INSTANCE_CATEGORY_NAMES:
-            if i == recieved_speech:
-                # print(i)
-                found = True
-                print("detected: {}".format(recieved_speech))
-                break
-        
-        if found == False:
-            recieved_speech = "item not in dataset"
-            print(recieved_speech)
-            break
-           
+if __name__ == "__main__":
+    recogniser = Recogniser()
+    input()
+    print(recogniser.get_voice_input())
+    
                 
 
 
