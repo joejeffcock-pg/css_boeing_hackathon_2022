@@ -13,11 +13,15 @@ import asyncio
 
 def cal_dist_ratio(x1,x2,y1,y2,width,height):
     max_dist = np.sqrt((width/2)**2 + (height/2)**2)
+    max_area = width*height
     obj_cen = np.array([(x2-x1)/2+x1, (y2-y1)/2+y1])
+    obj_area = (x2-x1)*(y2-y1)
     frame_cen = np.array([width/2, height/2])
     dist = np.linalg.norm(frame_cen-obj_cen)
+    area_ratio = 1-obj_area/max_area
     dist_ratio = 1-dist/max_dist
-    return dist_ratio
+    ratio = (area_ratio+dist_ratio)/2
+    return ratio
 
 
 COCO_INSTANCE_CATEGORY_NAMES = [
@@ -64,7 +68,7 @@ while 1:
         label = labels[i]
         score = scores[i]
         
-        if score>=0.75:
+        if score>=0.5:
             x1,y1,x2,y2 = [int(v) for v in box]
             dist_ratio = cal_dist_ratio(x1,x2,y1,y2,W,H)
             print(f'label: {COCO_INSTANCE_CATEGORY_NAMES[label]}, dist ratio: {dist_ratio}')
@@ -72,7 +76,7 @@ while 1:
             payload["distance_ratio"].append(dist_ratio)
             payload["scores"].append(float(score))
 
-        if score>=0.75:
+        if score>=0.5:
             x1,y1,x2,y2 = [int(v) for v in box]
             cv2.rectangle(frame, (x1,y1), (x2,y2), (0,255,0), 2)
             texts = COCO_INSTANCE_CATEGORY_NAMES[label]
