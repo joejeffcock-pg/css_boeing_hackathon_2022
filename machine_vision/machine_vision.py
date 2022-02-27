@@ -18,8 +18,9 @@ def cal_dist_ratio(x1,x2,y1,y2,width,height):
     obj_area = (x2-x1)*(y2-y1)
     frame_cen = np.array([width/2, height/2])
     dist = np.linalg.norm(frame_cen-obj_cen)
-    area_ratio = 1-obj_area/max_area
+    area_ratio = obj_area/max_area
     dist_ratio = 1-dist/max_dist
+    #print(f'AREA: {area_ratio:.3f}, DIST: {dist_ratio:.3f}')
     ratio = (area_ratio+dist_ratio)/2
     return ratio
 
@@ -82,7 +83,7 @@ while 1:
             texts = COCO_INSTANCE_CATEGORY_NAMES[label]
             cv2.putText(frame, texts, (x1,y1), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
 
-    mv_client.send(payload, verbose=1)        
+    #mv_client.send(payload, verbose=1)        
 
     if cv2.waitKey(10) & 0xFF == ord('q'):
         cap.release()
