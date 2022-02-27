@@ -3,7 +3,7 @@ import time
 import speech_recognition as sr
 
 
-def recognize_speech_from_mic(recognizer, microphone):
+def recognize_speech_from_mic(recognizer, microphone,keywords=None):
     """Transcribe speech from recorded from `microphone`.
 
     Returns a dictionary with three keys:
@@ -26,7 +26,8 @@ def recognize_speech_from_mic(recognizer, microphone):
     # from the microphone
     with microphone as source:
         recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source)
+        print("start listening")
+        audio = recognizer.listen(source, phrase_time_limit=1.0)
 
     # set up the response object
     response = {
@@ -39,7 +40,7 @@ def recognize_speech_from_mic(recognizer, microphone):
     # if a RequestError or UnknownValueError exception is caught,
     #     update the response object accordingly
     try:
-        response["transcription"] = recognizer.recognize_google(audio)
+        response["transcription"] = recognizer.recognize_sphinx(audio, keyword_entries=keywords)
     except sr.RequestError:
         # API was unreachable or unresponsive
         response["success"] = False
@@ -53,29 +54,29 @@ def recognize_speech_from_mic(recognizer, microphone):
 
 
 
+# COCO_INSTANCE_CATEGORY_NAMES = [
+#     'person', 'traffic light',
+#     'bench', 'cat', 'dog', 'umbrella', 'backpack',
+#     'handbag', 'bottle', 'cup', 'fork', 'knife', 'spoon', 'bowl',
+#     'chair', 'couch', 'potted plant', 'bed', 'dining table',
+#     'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
+#     'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book',
+#     'clock', 'vase', 'scissors', 'hair drier', 'toothbrush'
+# ]
 COCO_INSTANCE_CATEGORY_NAMES = [
-    '__background__', 'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
-    'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'N/A', 'stop sign',
-    'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
-    'elephant', 'bear', 'zebra', 'giraffe', 'N/A', 'backpack', 'umbrella', 'N/A', 'N/A',
-    'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
-    'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket',
-    'bottle', 'N/A', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl',
-    'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
-    'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed', 'N/A', 'dining table',
-    'N/A', 'N/A', 'toilet', 'N/A', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
-    'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'N/A', 'book',
-    'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush'
-]   
+    'person', 'bottle', 'cup', 'potted plant', 'chair', 'potted plant', 'laptop', 'mouse', 'keyboard', 'cell phone'
+]
+COCO_INSTANCE_CATEGORY_NAMES = [(label, 1.0) for label in COCO_INSTANCE_CATEGORY_NAMES]
+print(COCO_INSTANCE_CATEGORY_NAMES)
 
 class Recogniser:
     def __init__(self, device_index=None):
         # create recognizer and mic instances
         self.recognizer = sr.Recognizer()
-        self.microphone = sr.Microphone(device_index=device_index)
+        self.microphone = sr.Microphone(device_index=None)
     
     def get_voice_input(self):
-        guess = recognize_speech_from_mic(self.recognizer, self.microphone)
+        guess = recognize_speech_from_mic(self.recognizer, self.microphone, keywords=COCO_INSTANCE_CATEGORY_NAMES)
 
         # if there was an error, stop the game
         if guess["error"]:
@@ -84,9 +85,12 @@ class Recogniser:
 
         # determine if guess is correct and if any attempts remain
         transcript = guess["transcription"]
+        print(transcript)
+        transcript = transcript.split()
+        detected_label = transcript[-1]
 
-        for label in COCO_INSTANCE_CATEGORY_NAMES:
-            if label in transcript:
+        for label, sensitivity in COCO_INSTANCE_CATEGORY_NAMES:
+            if label == detected_label:
                 return 1, label
 
         return 0, transcript

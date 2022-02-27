@@ -11,7 +11,7 @@ sys.path.append("../")
 from voicedetection import Recogniser, recognize_speech_from_mic
 
 ser_comms = SerialCommunicator()
-recogniser = Recogniser(device_index=19)
+recogniser = Recogniser(device_index=None)
 target = None
 recognised_label = None
 
@@ -23,8 +23,9 @@ def set_target():
         # insert change of target here!
         print("RECOGNISING")
         known, recognised_label = recogniser.get_voice_input()
+        print("RECOGNISED:", recognised_label)
         if known:
-            target = label
+            target = recognised_label
         else:
             target = None
 
@@ -43,7 +44,8 @@ async def handle_echo(reader, writer):
     detections = json.loads(message)
     for i, label in enumerate(detections["labels"]):
         if label == target:
-            curr_signal = (1 - detections["distance_ratio"][i]) * 255
+            curr_signal = (1 - detections["distance_ratio"][i] * 1.5) * 255
+            curr_signal = max(curr_signal, 0)
             signal = min(signal, int(curr_signal))
 
 

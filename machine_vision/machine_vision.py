@@ -42,11 +42,11 @@ COCO_INSTANCE_CATEGORY_NAMES = [
 
 mv_client = JSONClient()
 
-model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+model = torchvision.models.detection.fasterrcnn_mobilenet_v3_large_fpn(pretrained=True)
 model.eval()
 model.to("cuda")
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2)
 transform = transforms.ToTensor()
 
 prev_img = None
@@ -83,7 +83,7 @@ while 1:
             texts = COCO_INSTANCE_CATEGORY_NAMES[label]
             cv2.putText(frame, texts, (x1,y1), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
 
-    #mv_client.send(payload, verbose=1)        
+    mv_client.send(payload, verbose=1)
 
     if cv2.waitKey(10) & 0xFF == ord('q'):
         cap.release()
