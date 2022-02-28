@@ -23,11 +23,30 @@ void loop() {
     score = Serial.read();
   }
   if (score != 255){
-    CircuitPlayground.playTone(440, 50);
+    CircuitPlayground.playTone(700, 50);
     delay(score);
   }
   if (digitalRead(19) == HIGH){
-    CircuitPlayground.setPixelColor(9, 255, 0, 0);
+      CircuitPlayground.setPixelColor(0, CircuitPlayground.colorWheel(25 * 0));
+      delay(50);
+      CircuitPlayground.setPixelColor(1, CircuitPlayground.colorWheel(25 * 1));
+      delay(50);
+      CircuitPlayground.setPixelColor(2, CircuitPlayground.colorWheel(25 * 2));
+      delay(50);
+      CircuitPlayground.setPixelColor(3, CircuitPlayground.colorWheel(25 * 3));
+      delay(50);
+      CircuitPlayground.setPixelColor(4, CircuitPlayground.colorWheel(25 * 4));
+      delay(50);
+      CircuitPlayground.setPixelColor(5, CircuitPlayground.colorWheel(25 * 5));
+      delay(50);
+      CircuitPlayground.setPixelColor(6, CircuitPlayground.colorWheel(25 * 6));
+      delay(50);
+      CircuitPlayground.setPixelColor(7, CircuitPlayground.colorWheel(25 * 7));
+      delay(50);
+      CircuitPlayground.setPixelColor(8, CircuitPlayground.colorWheel(25 * 8));
+      delay(50);
+      CircuitPlayground.setPixelColor(9, CircuitPlayground.colorWheel(25 * 9));
+      delay(50);
     if (!pressed)
       Serial.write(true);
     pressed = true;
